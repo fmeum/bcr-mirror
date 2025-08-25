@@ -99,8 +99,26 @@ def check_image_exists(image_name, registry_url):
         logging.debug(f"Error checking image existence: {e}")
         return False
 
+def get_archive_media_type(url):
+    """Get the appropriate OCI media type for an archive file based on URL."""
+    url_lower = url.lower()
+    if url_lower.endswith('.tar.gz') or url_lower.endswith('.tgz'):
+        return "application/vnd.oci.image.layer.v1.tar+gzip"
+    elif url_lower.endswith('.tar'):
+        return "application/vnd.oci.image.layer.v1.tar"
+    elif url_lower.endswith('.zip'):
+        return "application/zip"
+    else:
+        return None  # Unsupported archive type
+
 def create_oci_manifest(archive_path, source_url, sri_hash):
     """Create an OCI image manifest with the archive as a layer blob."""
+    # Get the media type from the source URL
+    media_type = get_archive_media_type(source_url)
+
+    if media_type is None:
+        raise ValueError(f"Unsupported archive type: {source_url}")
+
     # Calculate the sha256 hash of the archive file
     with open(archive_path, 'rb') as f:
         archive_data = f.read()
@@ -110,7 +128,7 @@ def create_oci_manifest(archive_path, source_url, sri_hash):
 
     # Create the layer descriptor - the layer digest IS the archive hash
     layer_descriptor = {
-        "mediaType": "application/vnd.oci.image.layer.v1.tar",
+        "mediaType": media_type,
         "digest": f"sha256:{archive_sha256}",
         "size": archive_size
     }
