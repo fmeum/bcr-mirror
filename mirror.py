@@ -104,6 +104,8 @@ def get_archive_media_type(url):
     url_lower = url.lower()
     if url_lower.endswith('.tar.gz') or url_lower.endswith('.tgz'):
         return "application/vnd.oci.image.layer.v1.tar+gzip"
+    elif url_lower.endswith('.tar.xz'):
+        return "application/x-xz"
     elif url_lower.endswith('.tar'):
         return "application/vnd.oci.image.layer.v1.tar"
     elif url_lower.endswith('.zip'):
