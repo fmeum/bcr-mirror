@@ -1,0 +1,11 @@
+name = "bcr-archive-proxy"
+main = "worker.js"
+compatibility_date = "2024-09-25"
+
+[vars]
+REGISTRY_URL = "https://ghcr.io"
+NAMESPACE = "fmeum/bcr-mirror"
+
+# To deploy:
+# npm install -g wrangler
+# wrangler deploy

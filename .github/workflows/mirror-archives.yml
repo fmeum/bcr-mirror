@@ -1,0 +1,61 @@
+name: Mirror Bazel Registry Archives
+
+on:
+  workflow_dispatch:
+    inputs:
+      first_commit:
+        description: 'First commit SHA to compare from'
+        required: true
+        type: string
+      last_commit:
+        description: 'Last commit SHA to compare to'
+        required: true
+        type: string
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+      - name: Checkout BCR mirror repository
+        uses: actions/checkout@v4
+      
+      - name: Checkout Bazel Central Registry
+        uses: actions/checkout@v4
+        with:
+          repository: bazelbuild/bazel-central-registry
+          path: bcr
+          fetch-depth: 0
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Run archive mirroring
+        working-directory: bcr
+        run: |
+          python ../mirror.py \
+            "${{ inputs.first_commit }}" \
+            "${{ inputs.last_commit }}" \
+            "ghcr.io/${{ github.repository }}"
+      
+      - name: Summary
+        run: |
+          echo "### Archive Mirroring Complete 🎉" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **First commit:** \`${{ inputs.first_commit }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Last commit:** \`${{ inputs.last_commit }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Registry:** \`ghcr.io/${{ github.repository }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Archives have been mirrored as OCI images with layer digests matching archive hashes." >> $GITHUB_STEP_SUMMARY
