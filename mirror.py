@@ -274,10 +274,16 @@ def main():
                     # Download and verify the archive
                     archive_path = download_archive(url, sri_hash, download_dir)
 
-                    # Create and push OCI image
-                    create_oci_image(archive_path, image_name, registry_url, url, sri_hash)
+                    try:
+                        # Create and push OCI image
+                        create_oci_image(archive_path, image_name, registry_url, url, sri_hash)
 
-                    logging.info(f"Successfully processed {url}")
+                        logging.info(f"Successfully processed {url}")
+
+                    finally:
+                        # Clean up the individual archive file
+                        if os.path.exists(archive_path):
+                            os.unlink(archive_path)
 
                 except Exception as e:
                     logging.error(f"Failed to process {url}: {e}")
