@@ -258,10 +258,12 @@ def main():
             for url, sri_hash in archive_urls.items():
                 try:
                     # Generate image name from hash of URL without scheme
-                    if not url.startswith('https://'):
-                        raise ValueError(f"URL must start with https://: {url}")
-
-                    url_without_scheme = url[8:]  # Remove 'https://'
+                    if url.startswith('https://'):
+                        url_without_scheme = url[8:]  # Remove 'https://'
+                    elif url.startswith('http://'):
+                        url_without_scheme = url[7:]  # Remove 'http://'
+                    else:
+                        raise ValueError(f"URL must start with http:// or https://: {url}")
                     url_hash = hashlib.sha256(url_without_scheme.encode()).hexdigest()
                     image_name = f"url-sha256-{url_hash}"
 
